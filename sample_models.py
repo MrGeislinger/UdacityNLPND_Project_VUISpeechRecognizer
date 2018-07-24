@@ -125,7 +125,7 @@ def bidirectional_rnn_model(input_dim, units, output_dim=29):
     input_data = Input(name='the_input', shape=(None, input_dim))
     # Add bidirectional recurrent layer
     rnn = GRU(units, activation="relu", return_sequences=True, implementation=2)
-    bidir_rnn = Bidirectional(rnn, name="bidir_rnn"))(input_data)
+    bidir_rnn = Bidirectional(rnn, name="bidir_rnn")(input_data)
     # Add a TimeDistributed(Dense(output_dim)) layer
     time_dense = TimeDistributed(Dense(output_dim), name='time_dense')(bidir_rnn)
     # Add softmax activation layer
