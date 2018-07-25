@@ -153,12 +153,12 @@ def final_model(input_dim, units, recur_layers, output_dim=29):
         # Add batch normalization 
         bn_rnn = BatchNormalization(name='batchnorm_rnn_{}'.format(n))(bidir_rnn)
         # Pass layer to be added onto
-        next_layer = bidir_rnn
+        next_layer = bn_rnn
     out_layer = next_layer
     # Add a TimeDistributed(Dense(output_dim)) layer
     time_dense = TimeDistributed(Dense(output_dim), name='time_dense')(out_layer)
     # 
-    dropout = Dropout(0.3)(time_dense)
+    dropout = Dropout(0.4)(time_dense)
     # Add softmax activation layer
     y_pred = Activation('softmax', name='softmax')(dropout)
     # Specify the model
