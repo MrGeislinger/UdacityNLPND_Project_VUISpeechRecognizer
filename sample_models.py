@@ -1,6 +1,6 @@
 from keras import backend as K
 from keras.models import Model
-from keras.layers import (BatchNormalization, Conv1D, Dense, Input, 
+from keras.layers import (BatchNormalization, Conv1D, Dense, Input, Dropout,
     TimeDistributed, Activation, Bidirectional, SimpleRNN, GRU, LSTM)
 
 def simple_rnn_model(input_dim, output_dim=29):
@@ -136,18 +136,34 @@ def bidirectional_rnn_model(input_dim, units, output_dim=29):
     print(model.summary())
     return model
 
-def final_model():
+def final_model(input_dim, units, recur_layers, output_dim=29):
     """ Build a deep network for speech 
     """
     # Main acoustic input
     input_data = Input(name='the_input', shape=(None, input_dim))
-    # TODO: Specify the layers in your network
-    ...
-    # TODO: Add softmax activation layer
-    y_pred = ...
+    # Specify the layers in your network
+    # Add recurrent layers
+    next_layer = input_data
+    for n in range(recur_layers):
+        # Add RNN layer with batch normalization
+        rnn = GRU(units, activation='relu', return_sequences=True, 
+                       implementation=2, name='rnn_{}'.format(n))
+        # Add bidirectional recurrent layer
+        bidir_rnn = Bidirectional(rnn, name='bidir_rnn{}'.format(n))(next_layer)
+        # Add batch normalization 
+        bn_rnn = BatchNormalization(name='batchnorm_rnn_{}'.format(n))(bidir_rnn)
+        # Pass layer to be added onto
+        next_layer = bidir_rnn
+    out_layer = next_layer
+    # Add a TimeDistributed(Dense(output_dim)) layer
+    time_dense = TimeDistributed(Dense(output_dim), name='time_dense')(out_layer)
+    # 
+    dropout = Dropout(0.3)(time_dense)
+    # Add softmax activation layer
+    y_pred = Activation('softmax', name='softmax')(dropout)
     # Specify the model
     model = Model(inputs=input_data, outputs=y_pred)
-    # TODO: Specify model.output_length
-    model.output_length = ...
+    # Specify model.output_length
+    model.output_length = lambda x: x
     print(model.summary())
     return model
